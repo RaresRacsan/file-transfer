@@ -63,8 +63,8 @@ This will produce server.exe and client.exe.
 ```bash
 ./client.exe <server_ip> <filename>
 ```
-  - Replace <server_ip> with the server's IP address (e.g., 127.0.0.1 if running locally).
-  - Replace <filename> with the name of the file you want to download from the server's directory.
+   - Replace <server_ip> with the server's IP address (e.g., 127.0.0.1 if running locally).
+   - Replace <filename> with the name of the file you want to download from the server's directory.
     Example:
 ```bash
 ./client.exe 127.0.0.1 testfile.txt
@@ -77,18 +77,18 @@ The client will connect to the server, request the specified file, and save it l
 3. **Firewall or Antivirus**: Temporarily disable firewall or anitivirus software if they block connections.
 
 ## Notes
-  - Ensure the server and client are on the same network, or adjust router and firewall settings to allow communication.
-  - This application is designed for basic file transfers and currently supports single-client connections.
+   - Ensure the server and client are on the same network, or adjust router and firewall settings to allow communication.
+   - This application is designed for basic file transfers and currently supports single-client connections.
 
 ## Future Enhancements
 1. **Multiple File Transfers:**
-  - Support transferring multiple files at once or in a batch. This could involve sending an array of file names and then transferring each file one after another.
+   - Support transferring multiple files at once or in a batch. This could involve sending an array of file names and then transferring each file one after another.
 2. **Directory Transfers:**
-  - Allow transferring entire directories, which could involve recursively sending all files and folders, along with metadata.
+   - Allow transferring entire directories, which could involve recursively sending all files and folders, along with metadata.
 3. **Compression:**
-  - To reduce transfer time, you could compress the files before sending and decompress them on the receiving side.
+   - To reduce transfer time, you could compress the files before sending and decompress them on the receiving side.
 4. **Encryption:**
-  - Implement encryption (like SSL/TLS) for secure file transfers, especially if you plan to send sensitive data.
+   - Implement encryption (like SSL/TLS) for secure file transfers, especially if you plan to send sensitive data.
 
 ## License
 This project is open-source and available under the MIT License.
