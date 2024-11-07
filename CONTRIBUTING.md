@@ -4,9 +4,9 @@ If you're interested in contributing, please follow these steps:
 
 1. **Fork the repository** to your own GitHub account.
 2. **Clone your fork** to your local machine.
-   ```bash
-   git clone https://github.com/your-username/file-transfer-app.git
-   ```
+  ```bash
+  git clone https://github.com/your-username/file-transfer-app.git
+  ```
 3. **Create a new branch** for your changes:
   ```bash
   git checkout -b feature-name
