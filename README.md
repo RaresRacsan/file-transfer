@@ -65,7 +65,7 @@ This will produce server.exe and client.exe.
 ```
    - Replace <server_ip> with the server's IP address (e.g., 127.0.0.1 if running locally).
    - Replace <filename> with the name of the file you want to download from the server's directory.
-   Example:
+Example:
 ```bash
 ./client.exe 127.0.0.1 testfile.txt
 ```
