@@ -1,52 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winsock2.h>   // Windows socket library
-#include <ws2tcpip.h>   // Additional networking functions
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib"); // Link with Winsock library
+#pragma comment(lib, "ws2_32.lib")
+
+#define PORT 8080
+
+// Function to calculate the checksum (sum of all bytes)
+unsigned long calculate_checksum(FILE *file) {
+    unsigned long checksum = 0;
+    unsigned char buffer[1024];
+    size_t bytesRead;
+
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+        for (size_t i = 0; i < bytesRead; i++) {
+            checksum += buffer[i];
+        }
+    }
+
+    return checksum;
+}
 
 int main(int argc, char *argv[]) {
-    // Initialize Winsock
-    if(argc != 3) {
-        printf("Usage: %s <server_ip> <filename>\n", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s <server_ip> <file_name>\n", argv[0]);
         return 1;
     }
 
     const char *serverIp = argv[1];
     const char *fileName = argv[2];
 
+    // Initialize Winsock
     WSADATA wsaData;
-
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if(wsaInit != 0) {
+    if (wsaInit != 0) {
         printf("Winsock initialization failed. Error code: %d\n", wsaInit);
         return 1;
     }
-    printf("Winsock initialized.\n");
 
-    // Create and connect the client socket
+    // Create client socket
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(clientSocket == INVALID_SOCKET) {
+    if (clientSocket == INVALID_SOCKET) {
         printf("Socket creation failed. Error code: %d\n", WSAGetLastError());
         WSACleanup();
         return 1;
     }
 
+    // Setup server address
     struct sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(8080);  // Same port as server
+    serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = inet_addr(serverIp);
 
-    // Convert IP address from text to binary
-    if(serverAddr.sin_addr.s_addr == INADDR_NONE) {
-        printf("Invalid address/ Address not supported.\n");
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    if(connect(clientSocket, (struct sockaddr*)& serverAddr, sizeof(serverAddr)) < 0) {
+    if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         printf("Connection failed. Error code: %d\n", WSAGetLastError());
         closesocket(clientSocket);
         WSACleanup();
@@ -56,20 +64,19 @@ int main(int argc, char *argv[]) {
     printf("Connected to server.\n");
 
     // Send filename to server
-    if(send(clientSocket, fileName, strlen(fileName), 0) == SOCKET_ERROR) {
-        printf("Failed to send filename. Error code: %d\n", WSAGetLastError());
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-
+    send(clientSocket, fileName, strlen(fileName), 0);
     printf("Requested file: %s\n", fileName);
 
-    // Receive file data and save to disk
-    // Open a file to save the incoming data
-    FILE *file = fopen(fileName, "wb");
-    if(file == NULL) {
-        printf("Failed to open file for writing.\n");
+    // Receive file size and checksum from the server
+    long fileSize;
+    unsigned long serverChecksum;
+    recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
+    recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
+
+    // Receive file data and save it to disk
+    FILE *file = fopen("received_file", "wb");
+    if (file == NULL) {
+        printf("Failed to create file for writing.\n");
         closesocket(clientSocket);
         WSACleanup();
         return 1;
@@ -77,17 +84,26 @@ int main(int argc, char *argv[]) {
 
     char buffer[1024];
     int bytesReceived;
+    long bytesReceivedTotal = 0;
 
-    // Receive data in chunks and write to file
-    while((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
+    while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
         fwrite(buffer, 1, bytesReceived, file);
+        bytesReceivedTotal += bytesReceived;
     }
 
-    if(bytesReceived < 0) {
-        printf("Failed to receive file data. Error Code: %d\n", WSAGetLastError());
-    }
-    else {
-        printf("File reveived and saved successfully.\n");
+    printf("File received: %ld bytes\n", bytesReceivedTotal);
+
+    // Check if file size matches
+    if (bytesReceivedTotal != fileSize) {
+        printf("File corruption detected: sizes do not match!\n");
+    } else {
+        // Check file integrity by checksum
+        unsigned long receivedChecksum = calculate_checksum(file);
+        if (receivedChecksum != serverChecksum) {
+            printf("File corruption detected: checksums do not match!\n");
+        } else {
+            printf("File integrity verified.\n");
+        }
     }
 
     fclose(file);
