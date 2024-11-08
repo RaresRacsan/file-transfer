@@ -1,7 +1,7 @@
 # Future Updates for File Transfer App
 
 ## Current State:
-The application allows for basic file transfers between a client and server using TCP sockets. It supports multiple file types (including `.exe` and `.c` files), but it is still a simple and foundational implementation.
+The application allows for basic file transfers between a client and server using TCP sockets. It supports multiple file types (any text file, even .exe files), but it is still a simple and foundational implementation.
 
 ## Planned Features and Enhancements:
 
