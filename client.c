@@ -8,7 +8,7 @@
 
 #define PORT 8080
 
-// Function to calculate the checksum (sum of all bytes)
+// Function to calculate checksum (sum of all bytes)
 unsigned long calculate_checksum(FILE *file) {
     unsigned long checksum = 0;
     unsigned char buffer[1024];
@@ -16,7 +16,7 @@ unsigned long calculate_checksum(FILE *file) {
 
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
         for (size_t i = 0; i < bytesRead; i++) {
-            checksum += buffer[i];
+            checksum += buffer[i];  // Add each byte to checksum
         }
     }
 
@@ -92,7 +92,9 @@ int main(int argc, char *argv[]) {
     int bytesReceived;
     long bytesReceivedTotal = 0;
 
+    // Receive file data in chunks and write to file
     while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
+        printf("Client: Received %d bytes\n", bytesReceived);  // Debug print
         fwrite(buffer, 1, bytesReceived, file);
         bytesReceivedTotal += bytesReceived;
     }
@@ -104,7 +106,7 @@ int main(int argc, char *argv[]) {
         printf("File corruption detected (size mismatch).\n");
     } else {
         // Calculate checksum and verify
-        fseek(file, 0, SEEK_SET);
+        fseek(file, 0, SEEK_SET);  // Ensure we're at the beginning of the file
         unsigned long fileChecksum = calculate_checksum(file);
         
         // Print checksum of received file
