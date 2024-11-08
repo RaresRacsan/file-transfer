@@ -70,9 +70,6 @@ int main(int argc, char *argv[]) {
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
 
-    // Print checksum received from the server
-    printf("Client: Received checksum from server: %lu\n", serverChecksum);
-
     // Open file to write
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
@@ -88,7 +85,6 @@ int main(int argc, char *argv[]) {
 
     // Receive file data in chunks and write to file while calculating checksum
     while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-        printf("Client: Received %d bytes\n", bytesReceived);  // Debug print
         fwrite(buffer, 1, bytesReceived, file);  // Write data to file
         clientChecksum = calculate_checksum(buffer, bytesReceived);  // Calculate checksum
     }
