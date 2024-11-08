@@ -83,8 +83,6 @@ int main(int argc, char *argv[]) {
         clientChecksum += calculate_checksum(buffer, bytesReceived);
     }
 
-    printf("Client: File received and written. Final checksum calculated: %lu\n", clientChecksum);
-
     if (ftell(file) != fileSize) {
         printf("File corruption detected (size mismatch).\n");
     } else {
