@@ -65,7 +65,6 @@ This will produce server.exe and client.exe.
 ```
    - Replace <server_ip> with the server's IP address (e.g., 127.0.0.1 if running locally).
    - Replace <filename> with the name of the file you want to download from the server's directory.
-    Example:
 ```bash
 ./client.exe 127.0.0.1 testfile.txt
 ```
@@ -89,6 +88,9 @@ The client will connect to the server, request the specified file, and save it l
    - To reduce transfer time, you could compress the files before sending and decompress them on the receiving side.
 4. **Encryption:**
    - Implement encryption (like SSL/TLS) for secure file transfers, especially if you plan to send sensitive data.
+5. **User interface**
+6. **Error handling and other problems:**
+   - file overwritting, special file types, file integrity check.
 
 ## License
 This project is open-source and available under the MIT License.
