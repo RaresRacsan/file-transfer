@@ -76,6 +76,9 @@ int main(int argc, char *argv[]) {
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
 
+    // Print checksum received from the server
+    printf("Client: Received checksum from server: %lu\n", serverChecksum);
+
     // Open file to write
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
@@ -94,7 +97,7 @@ int main(int argc, char *argv[]) {
         bytesReceivedTotal += bytesReceived;
     }
 
-    printf("File received: %ld bytes\n", bytesReceivedTotal);
+    printf("Client: File received: %ld bytes\n", bytesReceivedTotal);
 
     // Check if file size matches
     if (bytesReceivedTotal != fileSize) {
@@ -103,6 +106,9 @@ int main(int argc, char *argv[]) {
         // Calculate checksum and verify
         fseek(file, 0, SEEK_SET);
         unsigned long fileChecksum = calculate_checksum(file);
+        
+        // Print checksum of received file
+        printf("Client: Calculated checksum of received file: %lu\n", fileChecksum);
 
         if (fileChecksum == serverChecksum) {
             printf("File checksum matches. File is valid.\n");

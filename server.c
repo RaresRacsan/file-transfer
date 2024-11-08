@@ -101,6 +101,9 @@ int main() {
         unsigned long checksum = calculate_checksum(file);
         fclose(file);
 
+        printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
+        printf("Server: File size: %ld bytes\n", fileSize);
+
         // Send filename, file size, and checksum to the client
         send(clientSocket, fileName, strlen(fileName) + 1, 0); // Include null terminator
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
