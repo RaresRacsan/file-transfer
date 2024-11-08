@@ -98,14 +98,16 @@ int main(int argc, char *argv[]) {
 
     // Check if file size matches
     if (bytesReceivedTotal != fileSize) {
-        printf("File corruption detected: sizes do not match!\n");
+        printf("File corruption detected (size mismatch).\n");
     } else {
-        // Check file integrity by checksum
-        unsigned long receivedChecksum = calculate_checksum(file);
-        if (receivedChecksum != serverChecksum) {
-            printf("File corruption detected: checksums do not match!\n");
+        // Calculate checksum and verify
+        fseek(file, 0, SEEK_SET);
+        unsigned long fileChecksum = calculate_checksum(file);
+
+        if (fileChecksum == serverChecksum) {
+            printf("File checksum matches. File is valid.\n");
         } else {
-            printf("File integrity verified.\n");
+            printf("File checksum does not match. File may be corrupted.\n");
         }
     }
 
