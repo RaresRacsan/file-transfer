@@ -7,12 +7,13 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
+#define CHUNK_SIZE 16384 // 16 KB chunk size
 
 // Function to calculate checksum (sum of all bytes)
 unsigned long calculate_checksum(unsigned char *data, size_t dataSize) {
     unsigned long checksum = 0;
     for (size_t i = 0; i < dataSize; i++) {
-        checksum += data[i];  // Add each byte to checksum
+        checksum += data[i];
     }
     return checksum;
 }
@@ -26,7 +27,6 @@ int main(int argc, char *argv[]) {
     const char *serverIp = argv[1];
     const char *fileName = argv[2];
 
-    // Initialize Winsock
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaInit != 0) {
@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Create client socket
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == INVALID_SOCKET) {
         printf("Socket creation failed. Error code: %d\n", WSAGetLastError());
@@ -42,7 +41,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Setup server address
     struct sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
@@ -57,11 +55,9 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to server.\n");
 
-    // Send filename to server
     send(clientSocket, fileName, strlen(fileName), 0);
     printf("Requested file: %s\n", fileName);
 
-    // Receive filename, file size, and checksum from the server
     char receivedFileName[256];
     long fileSize;
     unsigned long serverChecksum;
@@ -70,7 +66,6 @@ int main(int argc, char *argv[]) {
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
 
-    // Open file to write
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
         printf("Failed to create file for writing.\n");
@@ -79,23 +74,20 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    char buffer[1024];
+    char buffer[CHUNK_SIZE];
     int bytesReceived;
-    unsigned long clientChecksum = 0;  // Initialize client checksum variable
+    unsigned long clientChecksum = 0;
 
-    // Receive file data in chunks and write to file while calculating checksum
     while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-        fwrite(buffer, 1, bytesReceived, file);  // Write data to file
-        clientChecksum = calculate_checksum(buffer, bytesReceived);  // Calculate checksum
+        fwrite(buffer, 1, bytesReceived, file);
+        clientChecksum += calculate_checksum(buffer, bytesReceived);
     }
 
     printf("Client: File received and written. Final checksum calculated: %lu\n", clientChecksum);
 
-    // Check if file size matches
     if (ftell(file) != fileSize) {
         printf("File corruption detected (size mismatch).\n");
     } else {
-        // Compare checksum
         if (clientChecksum == serverChecksum) {
             printf("File checksum matches. File is valid.\n");
         } else {

@@ -7,11 +7,12 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
+#define CHUNK_SIZE 16384 // 16 KB chunk size
 
 // Function to calculate the checksum (sum of all bytes)
 unsigned long calculate_checksum(FILE *file) {
     unsigned long checksum = 0;
-    unsigned char buffer[1024];
+    unsigned char buffer[CHUNK_SIZE];
     size_t bytesRead;
 
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
@@ -24,7 +25,6 @@ unsigned long calculate_checksum(FILE *file) {
 }
 
 int main() {
-    // Initialize Winsock
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaInit != 0) {
@@ -32,9 +32,6 @@ int main() {
         return 1;
     }
 
-    printf("Winsock initialized!\n");
-
-    // Create server socket
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSocket == INVALID_SOCKET) {
         printf("Socket creation failed. Error code: %d\n", WSAGetLastError());
@@ -42,7 +39,6 @@ int main() {
         return 1;
     }
 
-    // Bind server socket
     struct sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
@@ -64,7 +60,6 @@ int main() {
 
     printf("Listening on port %d...\n", PORT);
 
-    // Accept client connections
     SOCKET clientSocket;
     struct sockaddr_in clientAddr;
     int clientAddrSize = sizeof(clientAddr);
@@ -72,7 +67,6 @@ int main() {
     while ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET) {
         printf("Client connected.\n");
 
-        // Receive filename from client
         char fileName[256];
         int bytesReceived = recv(clientSocket, fileName, sizeof(fileName), 0);
         if (bytesReceived <= 0) {
@@ -82,9 +76,6 @@ int main() {
         }
         fileName[bytesReceived] = '\0';
 
-        printf("Client requested file: %s\n", fileName);
-
-        // Open file and get size and checksum
         FILE *file = fopen(fileName, "rb");
         if (file == NULL) {
             printf("File not found: %s\n", fileName);
@@ -92,26 +83,22 @@ int main() {
             continue;
         }
 
-        // Calculate file size
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        // Calculate checksum (sum of all bytes)
         unsigned long checksum = calculate_checksum(file);
         fclose(file);
 
         printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
         printf("Server: File size: %ld bytes\n", fileSize);
 
-        // Send filename, file size, and checksum to the client
-        send(clientSocket, fileName, strlen(fileName) + 1, 0); // Include null terminator
+        send(clientSocket, fileName, strlen(fileName) + 1, 0);
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
 
-        // Send file in chunks
         file = fopen(fileName, "rb");
-        char buffer[1024];
+        char buffer[CHUNK_SIZE];
         int bytesRead;
 
         while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
