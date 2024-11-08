@@ -67,14 +67,17 @@ int main(int argc, char *argv[]) {
     send(clientSocket, fileName, strlen(fileName), 0);
     printf("Requested file: %s\n", fileName);
 
-    // Receive file size and checksum from the server
+    // Receive filename, file size, and checksum from the server
+    char receivedFileName[256];
     long fileSize;
     unsigned long serverChecksum;
+    
+    recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
 
-    // Receive file data and save it to disk
-    FILE *file = fopen("received_file", "wb");
+    // Open file to write
+    FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
         printf("Failed to create file for writing.\n");
         closesocket(clientSocket);

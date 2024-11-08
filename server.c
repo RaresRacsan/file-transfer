@@ -101,7 +101,8 @@ int main() {
         unsigned long checksum = calculate_checksum(file);
         fclose(file);
 
-        // Send file size and checksum to the client
+        // Send filename, file size, and checksum to the client
+        send(clientSocket, fileName, strlen(fileName) + 1, 0); // Include null terminator
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
 
