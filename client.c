@@ -9,7 +9,6 @@
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
 
-// Function to calculate checksum (sum of all bytes)
 unsigned long calculate_checksum(unsigned char *data, size_t dataSize) {
     unsigned long checksum = 0;
     for (size_t i = 0; i < dataSize; i++) {

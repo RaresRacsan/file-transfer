@@ -9,7 +9,6 @@
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
 
-// Function to calculate the checksum (sum of all bytes)
 unsigned long calculate_checksum(FILE *file) {
     unsigned long checksum = 0;
     unsigned char buffer[CHUNK_SIZE];
@@ -20,7 +19,7 @@ unsigned long calculate_checksum(FILE *file) {
             checksum += buffer[i];
         }
     }
-
+    fseek(file, 0, SEEK_SET); // Reset file pointer to start for later use
     return checksum;
 }
 
@@ -88,8 +87,6 @@ int main() {
         fseek(file, 0, SEEK_SET);
 
         unsigned long checksum = calculate_checksum(file);
-        fclose(file);
-
         printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
         printf("Server: File size: %ld bytes\n", fileSize);
 
@@ -97,12 +94,22 @@ int main() {
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
 
-        file = fopen(fileName, "rb");
         char buffer[CHUNK_SIZE];
         int bytesRead;
 
         while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-            send(clientSocket, buffer, bytesRead, 0);
+            int bytesSent = 0;
+            while (bytesSent < bytesRead) {
+                int result = send(clientSocket, buffer + bytesSent, bytesRead - bytesSent, 0);
+                if (result == SOCKET_ERROR) {
+                    printf("Error sending file data. Code: %d\n", WSAGetLastError());
+                    fclose(file);
+                    closesocket(clientSocket);
+                    WSACleanup();
+                    return 1;
+                }
+                bytesSent += result;
+            }
         }
 
         printf("File sent successfully.\n");
