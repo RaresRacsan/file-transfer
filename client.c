@@ -9,17 +9,11 @@
 #define PORT 8080
 
 // Function to calculate checksum (sum of all bytes)
-unsigned long calculate_checksum(FILE *file) {
+unsigned long calculate_checksum(unsigned char *data, size_t dataSize) {
     unsigned long checksum = 0;
-    unsigned char buffer[1024];
-    size_t bytesRead;
-
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-        for (size_t i = 0; i < bytesRead; i++) {
-            checksum += buffer[i];  // Add each byte to checksum
-        }
+    for (size_t i = 0; i < dataSize; i++) {
+        checksum += data[i];  // Add each byte to checksum
     }
-
     return checksum;
 }
 
@@ -90,29 +84,23 @@ int main(int argc, char *argv[]) {
 
     char buffer[1024];
     int bytesReceived;
-    long bytesReceivedTotal = 0;
+    unsigned long clientChecksum = 0;  // Initialize client checksum variable
 
-    // Receive file data in chunks and write to file
+    // Receive file data in chunks and write to file while calculating checksum
     while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
         printf("Client: Received %d bytes\n", bytesReceived);  // Debug print
-        fwrite(buffer, 1, bytesReceived, file);
-        bytesReceivedTotal += bytesReceived;
+        fwrite(buffer, 1, bytesReceived, file);  // Write data to file
+        clientChecksum = calculate_checksum(buffer, bytesReceived);  // Calculate checksum
     }
 
-    printf("Client: File received: %ld bytes\n", bytesReceivedTotal);
+    printf("Client: File received and written. Final checksum calculated: %lu\n", clientChecksum);
 
     // Check if file size matches
-    if (bytesReceivedTotal != fileSize) {
+    if (ftell(file) != fileSize) {
         printf("File corruption detected (size mismatch).\n");
     } else {
-        // Calculate checksum and verify
-        fseek(file, 0, SEEK_SET);  // Ensure we're at the beginning of the file
-        unsigned long fileChecksum = calculate_checksum(file);
-        
-        // Print checksum of received file
-        printf("Client: Calculated checksum of received file: %lu\n", fileChecksum);
-
-        if (fileChecksum == serverChecksum) {
+        // Compare checksum
+        if (clientChecksum == serverChecksum) {
             printf("File checksum matches. File is valid.\n");
         } else {
             printf("File checksum does not match. File may be corrupted.\n");
