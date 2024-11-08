@@ -9,8 +9,8 @@ The application allows for basic file transfers between a client and server usin
    - **Implement Encryption**: Add SSL/TLS support to encrypt the file transfer, ensuring secure communication between the client and server.
    - **Authentication**: Introduce user authentication to verify the identity of both the client and the server before allowing file transfers.
 
-### 2. **Improved Error Handling**
-   - **Large File Transfers**: Ensure the program can handle large files, including splitting large files into smaller chunks for transfer.
+### 2. **Improved Error Handling** ✔
+   - ~~**Large File Transfers**: Ensure the program can handle large files, including splitting large files into smaller chunks for transfer.~~ ✔
    - ~~**File Integrity Check**: Implement checksum to verify the integrity of transferred files and ensure they are received correctly.~~ ✔
 
 ### 3. **File Metadata**
