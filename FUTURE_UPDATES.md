@@ -13,9 +13,9 @@ The application allows for basic file transfers between a client and server usin
    - ~~**Large File Transfers**: Ensure the program can handle large files, including splitting large files into smaller chunks for transfer.~~ ✔
    - ~~**File Integrity Check**: Implement checksum to verify the integrity of transferred files and ensure they are received correctly.~~ ✔
 
-### 3. **File Metadata**
-   - **Send File Metadata**: Before transferring files, send metadata (file name, size, type) to the client for better file management.
-   - **Improved File Naming**: Handle special characters in file names and support renaming files if they already exist on the client-side.
+### 3. **File Metadata** ✔
+   - ~~**Send File Metadata**: Before transferring files, send metadata (file name, size, type) to the client for better file management.~~ ✔
+   - ~~**Improved File Naming**: Handle special characters in file names and support renaming files if they already exist on the client-side.~~ ✔
 
 ### 4. **Directory Support**
    - **Transfer Directories**: Allow transferring entire directories by packaging them into a compressed format (e.g., `.zip` or `.tar`) and extracting them on the client side.
