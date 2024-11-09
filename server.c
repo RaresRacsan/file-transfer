@@ -38,34 +38,6 @@ void sanitize_filename(char * fileName) {
     }
 }
 
-// Function to get the custom file type based on extension
-const char* get_file_type(const char *fileName) {
-    const char *ext = strrchr(fileName, '.');
-    if(ext == NULL) {
-        return "unknown/unknown";   // Default type for unknown files
-    }
-
-    ext++;
-
-    // Check for text-based file extensions
-    if (strcmp(ext, "txt") == 0) return "text/plain";
-    if (strcmp(ext, "c") == 0) return "text/c";
-    if (strcmp(ext, "cpp") == 0) return "text/cpp";
-    if (strcmp(ext, "py") == 0) return "text/py";
-    if (strcmp(ext, "js") == 0) return "text/javascript";
-    if (strcmp(ext, "html") == 0) return "text/html";
-    if (strcmp(ext, "css") == 0) return "text/css";
-    if (strcmp(ext, "json") == 0) return "text/json";
-
-    // For binary types or other files, return appropriate MIME type
-    if (strcmp(ext, "exe") == 0) return "application/exe";
-    if (strcmp(ext, "pdf") == 0) return "application/pdf";
-    
-    // For any other file type, return generic binary MIME type
-    return "application/octet-stream";
-}
-
-
 int main() {
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -138,16 +110,10 @@ int main() {
         printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
         printf("Server: File size: %ld bytes\n", fileSize);
 
-        // Get the mime type
-        const char* fileType = get_file_type(fileName);
-        printf("File type: %s.\n", fileType);
-
-
         // Send file metadata (name, size, checksum, type)
         send(clientSocket, fileName, strlen(fileName) + 1, 0);
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
-        send(clientSocket, fileType, strlen(fileType) + 1, 0);
 
         file = fopen(fileName, "rb");
 
