@@ -55,7 +55,7 @@ You should see version information if GCC is installed properly.
    - Open the project folder in your chosen editor to manage and edit files easily.
 
 
-## Compilation
+## Compilation - without GTK
 Compile the server and client applications as follows:
 1. **Compile the server**
 ```bash
@@ -87,7 +87,7 @@ This will produce server.exe and client.exe.
 ```
 The client will connect to the server, request the specified file, and save it locally with the same filename.
 
-## Compile Server and client with GTK
+## Compile Server and client - with GTK
 1. Set up pkg-config to find GTK:
    - If you are using MSYS2 or another package manager like vcpkg, ensure the pkg-config path is configured properly.
    In MSYS2, you can run the following command:
@@ -119,7 +119,7 @@ The client will connect to the server, request the specified file, and save it l
    ```
    This will produce server_app.exe and client_app.exe in your project folder.
 
-## Running the application with GTK
+## Running the application - with GTK
 ### Step 1: Start the Server
 1. Open a terminal or command prompt in the project directory.
 2. Run the server application:
