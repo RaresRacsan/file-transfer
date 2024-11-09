@@ -32,7 +32,7 @@ void sanitize_filename (char *fileName) {
 }
 
 // Function to check if a file exists and prompt user for action (overwrite or rename)
-int file_exists (const char *fileName) {
+int file_exists (char *fileName) {
     if(_access(fileName, 0) != -1) {    // Check if file exists
         printf("File already exists %s.\n", fileName);
 
@@ -44,7 +44,7 @@ int file_exists (const char *fileName) {
             char newFileName[256];
             printf("Enter a new filename: ");
             scanf("%s", newFileName);
-            strcpy(newFileName, fileName);
+            strcpy(fileName, newFileName);
         }
         return 1;   // File exists
     }
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     if(file_exists(receivedFileName)) {
         printf("Renamed or overwritten file: %s.\n", receivedFileName);
     }
-
+    
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
         printf("Failed to create file for writing.\n");
