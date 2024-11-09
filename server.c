@@ -110,7 +110,7 @@ int main() {
         printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
         printf("Server: File size: %ld bytes\n", fileSize);
 
-        // Send file metadata (name, size, checksum, type)
+        // Send file metadata (name, size, checksum)
         send(clientSocket, fileName, strlen(fileName) + 1, 0);
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
