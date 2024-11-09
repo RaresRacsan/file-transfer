@@ -3,18 +3,53 @@
 #include <string.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <io.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
 
+// Function to calculate the checksum (sum of all bytes)
 unsigned long calculate_checksum(unsigned char *data, size_t dataSize) {
     unsigned long checksum = 0;
     for (size_t i = 0; i < dataSize; i++) {
         checksum += data[i];
     }
     return checksum;
+}
+
+// Function to sanitize filenames (remove/ replace with '_')
+void sanitize_filename (char *fileName) {
+    // List of invalid characters for filenames in Windows
+    const char *invalidChars = "\\/*?:\"<>|";
+
+    for(int i = 0; fileName[i]; i++) {
+        if(strchr(invalidChars, fileName[i])) {
+                fileName[i] = '_';
+            }
+    }
+}
+
+// Function to check if a file exists and prompt user for action (overwrite or rename)
+int file_exists (const char *fileName) {
+    if(_access(fileName, 0) != -1) {    // Check if file exists
+        prtinf("File already exists %s.\n", fileName);
+
+        printf("Do you want to overwrite it? (y/n): ");
+        char response;
+        scanf("%c", &response);
+
+        if(response != 'Y' && response != 'Y') {
+            char newFileName[256];
+            printf("Enter a new filename: ");
+            scanf("%s", newFileName);
+            rename(fileName, newFileName);
+            strcpy(fileName, newFileName);
+        }
+        return 1;   // File exists
+    }
+    return 0;       // File doesn't exist
 }
 
 int main(int argc, char *argv[]) {
@@ -54,6 +89,7 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to server.\n");
 
+    // Send filename to server
     send(clientSocket, fileName, strlen(fileName), 0);
     printf("Requested file: %s\n", fileName);
 
@@ -64,6 +100,13 @@ int main(int argc, char *argv[]) {
     recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
+
+    sanitize_filename(receivedFileName);
+
+    // Check if file already exists and handle renaming
+    if(file_exists(receivedFileName)) {
+        printf("Renamed or overwritten file: %s.\n", receivedFileName);
+    }
 
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {

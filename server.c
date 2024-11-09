@@ -3,6 +3,8 @@
 #include <string.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <sys/stat.h>
+#include <ctype.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -22,6 +24,18 @@ unsigned long calculate_checksum(FILE *file) {
     }
 
     return checksum;
+}
+
+// Function to sanitize filenames (remove/ replace with '_')
+void sanitize_filename(char * fileName) {
+    // List of invalid characters for filenames in Windows
+    const char *invalidChars = "\\/*?:\"<>|";
+
+    for(int i = 0; fileName[i]; i++) {
+        if(strchr(invalidChars, fileName[i])) {
+                fileName[i] = '_';
+            }
+    }
 }
 
 int main() {
@@ -76,6 +90,9 @@ int main() {
         }
         fileName[bytesReceived] = '\0';
 
+        // Sanitize filename to avoid illegal characters
+        sanitize_filename(fileName);
+
         FILE *file = fopen(fileName, "rb");
         if (file == NULL) {
             printf("File not found: %s\n", fileName);
@@ -93,11 +110,13 @@ int main() {
         printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
         printf("Server: File size: %ld bytes\n", fileSize);
 
+
+        // Send file metadata (name, size, checksum)
         send(clientSocket, fileName, strlen(fileName) + 1, 0);
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
 
-        file = fopen(fileName, "rb");
+        // Send file content in chunks  
         char buffer[CHUNK_SIZE];
         int bytesRead;
 
