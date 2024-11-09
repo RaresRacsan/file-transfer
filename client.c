@@ -93,15 +93,24 @@ int main(int argc, char *argv[]) {
     send(clientSocket, fileName, strlen(fileName), 0);
     printf("Requested file: %s\n", fileName);
 
+    // Receive the file metadata
     char receivedFileName[256];
     long fileSize;
     unsigned long serverChecksum;
+    char fileType[256];
     
     recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
+    recv(clientSocket, fileType, sizeof(fileType), 0);
 
     sanitize_filename(receivedFileName);
+
+    printf("Received file metadata:\n");
+    printf("File: %s\n", receivedFileName);
+    printf("Size: %ld bytes\n", fileSize);
+    printf("Checksum: %lu\n", serverChecksum);
+    printf("File type: %s\n", fileType);
 
     // Check if file already exists and handle renaming
     if(file_exists(receivedFileName)) {
