@@ -24,6 +24,8 @@ To run this application, you will need:
    - Download and install from [Git's website](https://git-scm.com/).
    - Use Git to clone this repository for quick setup.
 
+4. **GTK 3** (for graphical user interface).
+
 ### Verify GCC Installation
 
 To ensure GCC is installed correctly, open a terminal or command prompt and type:
@@ -32,11 +34,26 @@ gcc --version
 ```
 You should see version information if GCC is installed properly.
 
+## Downloads
+1. **Download MinGW**:
+   - go to MinGW's SourceForge page.
+   - Install MinGW and ensure that gcc is included in the installation.
+   - Add MinGW's bin folder (e.g., C:\MinGW\bin) to your PATH environment variable.
+2. **Install GTK 3**:
+   - Download GTK 3 for Windows from GTK's official website.
+   - Install GTK and ensure the required DLLs are placed in your system’s PATH or alongside the compiled executables.
+   Alternatively, if you're using MSYS2:
+   - Open the MSYS2 terminal and run:
+   ```bash
+   pacman -S mingw-w64-x86_64-gtk3
+   ```
+
 ## Getting Started
 1. **Clone this repository**
 2. **Open the project in your preferred IDE or text editor**
    - You can use Visual Studio Code, Code::Blocks, Dev-C++, Clion, or any other IDE text editor that supports C programming.
    - Open the project folder in your chosen editor to manage and edit files easily.
+
 
 ## Compilation
 Compile the server and client applications as follows:
@@ -50,7 +67,7 @@ gcc client.c -o client.exe -lws2_32
 ```
 This will produce server.exe and client.exe.
 
-## Running the Application
+## Running the Application - without GTK
 ### Step 1: Start the Server
 1. Open a terminal or command prompt in the project directory.
 2. Run the server application:
@@ -69,6 +86,52 @@ This will produce server.exe and client.exe.
 ./client.exe 127.0.0.1 testfile.txt
 ```
 The client will connect to the server, request the specified file, and save it locally with the same filename.
+
+## Compile Server and client with GTK
+1. Set up pkg-config to find GTK:
+   - If you are using MSYS2 or another package manager like vcpkg, ensure the pkg-config path is configured properly.
+   In MSYS2, you can run the following command:
+   ```bash
+   export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
+   ```
+2. Update c_cpp_properties.json in Visual Studio Code: To ensure Visual Studio Code recognizes GTK and other libraries, update the c_cpp_properties.json file to include the path to GTK and other necessary libraries:
+   Example:
+   - Press Ctrl + Shift + P and search for C/C++: Edit Configurations (UI).
+   - In the Include path section, add paths like:
+   ```bash
+   "C:/msys64/mingw64/include/gtk-3.0",
+    "C:/msys64/mingw64/include/glib-2.0",
+    "C:/msys64/mingw64/lib/glib-2.0/include",
+    "C:/msys64/mingw64/include/pango-1.0",
+    "C:/msys64/mingw64/include/cairo",
+    "C:/msys64/mingw64/include/gdk-pixbuf-2.0",
+    "C:/msys64/mingw64/include/atk-1.0",
+    "C:/msys64/mingw64/include/harfbuzz"
+   ```
+3. Compile the server and client:
+   - Compile the server application:
+   ```bash
+   gcc server.c -o server_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
+   ```
+   - Compile the client application:
+   ```bash
+   gcc client.c -o client_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
+   ```
+   This will produce server_app.exe and client_app.exe in your project folder.
+
+## Running the application with GTK
+### Step 1: Start the Server
+1. Open a terminal or command prompt in the project directory.
+2. Run the server application:
+   ```bash
+   ./server_app.exe
+   ```
+### Step 2: Run the Client
+1. In a separate terminal or on a different machine, navigate to the project directory.
+2. Run the client, specifying the server's IP address and the filename you want to download:
+   ```bash
+   ./client_app.exe
+   ```
 
 ## Troubleshooting
 1. **Connection refused (10061)**: Ensure the server is running and listening on the specified IP and PORT.
