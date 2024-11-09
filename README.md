@@ -153,7 +153,7 @@ The client will connect to the server, request the specified file, and save it l
    - Implement encryption (like SSL/TLS) for secure file transfers, especially if you plan to send sensitive data.
 5. **User interface**
    - for the application with GTK
-   - for the application withiut GTK
+   - for the application without GTK
 7. **Error handling and other problems:** ✔
    - file overwritting, special file types, file integrity check. ✔
 
