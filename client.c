@@ -34,18 +34,17 @@ void sanitize_filename (char *fileName) {
 // Function to check if a file exists and prompt user for action (overwrite or rename)
 int file_exists (const char *fileName) {
     if(_access(fileName, 0) != -1) {    // Check if file exists
-        prtinf("File already exists %s.\n", fileName);
+        printf("File already exists %s.\n", fileName);
 
         printf("Do you want to overwrite it? (y/n): ");
         char response;
         scanf("%c", &response);
 
-        if(response != 'Y' && response != 'Y') {
+        if(response != 'y' && response != 'Y') {
             char newFileName[256];
             printf("Enter a new filename: ");
             scanf("%s", newFileName);
-            rename(fileName, newFileName);
-            strcpy(fileName, newFileName);
+            strcpy(newFileName, fileName);
         }
         return 1;   // File exists
     }
