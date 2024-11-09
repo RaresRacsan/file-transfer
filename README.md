@@ -20,11 +20,7 @@ To run this application, you will need:
    - Download and install from [Visual Studio Code's website](https://code.visualstudio.com/).
    - You can open the project folder in VS Code to easily manage and compile files.
 
-3. **Install Git** (optional):
-   - Download and install from [Git's website](https://git-scm.com/).
-   - Use Git to clone this repository for quick setup.
-
-4. **GTK 3** (for graphical user interface).
+3. **GTK 3** (for graphical user interface).
 
 ### Verify GCC Installation
 
