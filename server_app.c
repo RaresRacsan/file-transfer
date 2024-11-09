@@ -46,6 +46,7 @@ void send_file(const char *fileName) {
 void on_accept_button_clicked(GtkWidget *widget, gpointer data) {
     const char *fileName = gtk_label_get_text(GTK_LABEL(label_file_requested));
     send_file(fileName);
+    closesocket(clientSocket);
 }
 
 // Callback when Decline button is clicked
