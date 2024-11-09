@@ -99,7 +99,7 @@ The client will connect to the server, request the specified file, and save it l
    - Press Ctrl + Shift + P and search for C/C++: Edit Configurations (UI).
    - In the Include path section, add paths like:
    ```bash
-   "C:/msys64/mingw64/include/gtk-3.0",
+    "C:/msys64/mingw64/include/gtk-3.0",
     "C:/msys64/mingw64/include/glib-2.0",
     "C:/msys64/mingw64/lib/glib-2.0/include",
     "C:/msys64/mingw64/include/pango-1.0",
