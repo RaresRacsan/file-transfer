@@ -42,13 +42,13 @@ int main() {
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaInit != 0) {
-        printf("Winsock initialization failed. Error code: %d\n", wsaInit);
+        printf("Error: Winsock initialization failed. Error code: %d\n", wsaInit);
         return 1;
     }
 
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSocket == INVALID_SOCKET) {
-        printf("Socket creation failed. Error code: %d\n", WSAGetLastError());
+        printf("Error: Socket creation failed. Error code: %d\n", WSAGetLastError());
         WSACleanup();
         return 1;
     }
@@ -59,20 +59,21 @@ int main() {
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(serverSocket, (const struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        printf("Bind failed. Error code: %d\n", WSAGetLastError());
+        printf("Error: Bind failed. Error code: %d\n", WSAGetLastError());
         closesocket(serverSocket);
         WSACleanup();
         return 1;
     }
 
     if (listen(serverSocket, 3) == SOCKET_ERROR) {
-        printf("Listen failed. Error code: %d\n", WSAGetLastError());
+        printf("Error: Listen failed. Error code: %d\n", WSAGetLastError());
         closesocket(serverSocket);
         WSACleanup();
         return 1;
     }
 
-    printf("Listening on port %d...\n", PORT);
+    printf("Server is listening on port %d...\n", PORT);
+    printf("Waiting for clients to connect.\n");
 
     SOCKET clientSocket;
     struct sockaddr_in clientAddr;
@@ -84,7 +85,7 @@ int main() {
         char fileName[256];
         int bytesReceived = recv(clientSocket, fileName, sizeof(fileName), 0);
         if (bytesReceived <= 0) {
-            printf("Error receiving filename.\n");
+            printf("Error: Failed to receive filename.\n");
             closesocket(clientSocket);
             continue;
         }
@@ -95,7 +96,7 @@ int main() {
 
         FILE *file = fopen(fileName, "rb");
         if (file == NULL) {
-            printf("File not found: %s\n", fileName);
+            printf("Error: File %s not found.\n", fileName);
             closesocket(clientSocket);
             continue;
         }
@@ -107,8 +108,9 @@ int main() {
         unsigned long checksum = calculate_checksum(file);
         fclose(file);
 
-        printf("Server: File '%s' checksum: %lu\n", fileName, checksum);
-        printf("Server: File size: %ld bytes\n", fileSize);
+        printf("Server: File '%s' found.\n", fileName);
+        printf("Server: File size is %ld bytes.\n", fileSize);
+        printf("Server: File checksum is %lu.\n", checksum);
 
         // Send file metadata (name, size, checksum)
         send(clientSocket, fileName, strlen(fileName) + 1, 0);
@@ -125,7 +127,7 @@ int main() {
             send(clientSocket, buffer, bytesRead, 0);
         }
 
-        printf("File sent successfully.\n");
+        printf("File '%s' sent successfully.\n", fileName);
         fclose(file);
         closesocket(clientSocket);
     }
