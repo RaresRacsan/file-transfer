@@ -107,11 +107,11 @@ The client will connect to the server, request the specified file, and save it l
 3. Compile the server and client:
    - Compile the server application:
    ```bash
-   gcc server.c -o server_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
+   gcc server_app.c -o server_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
    ```
    - Compile the client application:
    ```bash
-   gcc client.c -o client_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
+   gcc client_app.c -o client_app.exe `pkg-config --cflags --libs gtk+-3.0` -lws2_32
    ```
    This will produce server_app.exe and client_app.exe in your project folder.
 
