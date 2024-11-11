@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include "dirent.h"
+#include "zlib.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -15,6 +18,46 @@ GtkWidget *label_file_requested;
 
 SOCKET serverSocket;
 SOCKET clientSocket;
+
+void compress_file(FILE *source, gzFile dest) {
+    char buffer[CHUNK_SIZE];
+    int bytesRead = 0;
+    while ((bytesRead = fread(buffer, 1, CHUNK_SIZE, source)) > 0) {
+        gzwrite(dest, buffer, bytesRead);
+    }
+}
+
+void compress_directory(const char *dir_name, const char *output_file) {
+    DIR *dir;
+    struct dirent *entry;
+    char path[1024];
+    gzFile gz_file = gzopen(output_file, "wb");
+
+    if (!gz_file) {
+        perror("gzopen");
+        return;
+    }
+
+    if ((dir = opendir(dir_name)) == NULL) {
+        perror("opendir");
+        return;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+            FILE *file = fopen(path, "rb");
+            if (!file) {
+                perror("fopen");
+                continue;
+            }
+            compress_file(file, gz_file);
+            fclose(file);
+        }
+    }
+
+    closedir(dir);
+    gzclose(gz_file);
+}
 
 // Function to send the file if the request is accepted
 void send_file(const char *fileName) {
@@ -45,7 +88,20 @@ void send_file(const char *fileName) {
 // Callback when Accept button is clicked
 void on_accept_button_clicked(GtkWidget *widget, gpointer data) {
     const char *fileName = gtk_label_get_text(GTK_LABEL(label_file_requested));
-    send_file(fileName);
+    
+    struct stat path_stat;
+    stat(fileName, &path_stat);
+
+    if (S_ISDIR(path_stat.st_mode)) {
+        char compressed_file[256];
+        snprintf(compressed_file, sizeof(compressed_file), "%s.tar.gz", fileName);
+        compress_directory(fileName, compressed_file);
+        send_file(compressed_file);
+        remove(compressed_file); // Clean up the compressed file after sending
+    } else {
+        send_file(fileName);
+    }
+
     closesocket(clientSocket);
 }
 
@@ -119,7 +175,6 @@ int main(int argc, char *argv[]) {
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     gtk_main();
-
     closesocket(serverSocket);
     WSACleanup();
 

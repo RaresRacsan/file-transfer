@@ -39,6 +39,14 @@ void request_file (const char *serverIp, const char *fileName) {
     long fileSize;
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
 
+    // Determine if the request is for a directory
+    char outputFileName[256];
+    if (strchr(fileName, '.') == NULL) {
+        snprintf(outputFileName, sizeof(outputFileName), "%s.tar.gz", fileName);
+    } else {
+        snprintf(outputFileName, sizeof(outputFileName), "%s", fileName);
+    }
+
     // Receive file data
     FILE *file = fopen(fileName, "wb");
     char buffer[CHUNK_SIZE];
