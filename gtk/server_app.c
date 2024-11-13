@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 
     // Create the main window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Server application");
+    gtk_window_set_title(GTK_WINDOW(window), "Server");
     gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
 
     // Create a vertical box layout
@@ -144,6 +144,10 @@ int main(int argc, char *argv[]) {
     // Accept and decline buttons
     GtkWidget *button_accept = gtk_button_new_with_label("Accept");
     GtkWidget *button_decline = gtk_button_new_with_label("Decline");
+
+    gtk_widget_set_name(button_accept, "accept");
+    gtk_widget_set_name(button_decline, "decline");
+
     gtk_box_pack_start(GTK_BOX(vbox), button_accept, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), button_decline, FALSE, FALSE, 0);
 

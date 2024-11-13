@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     apply_css();
 
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Client Application");
+    gtk_window_set_title(GTK_WINDOW(window), "Client");
     gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
