@@ -16,6 +16,46 @@ GtkWidget *label_file_requested;
 SOCKET serverSocket;
 SOCKET clientSocket;
 
+void apply_css(void) {
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider,
+        "window {"
+        "   background-color: #1e1e1e;"
+        "}"
+        "label {"
+        "   color: #ffffff;"
+        "   font-size: 12px;"
+        "   margin: 10px;"
+        "}"
+        "button {"
+        "   background: #2d2d2d;"
+        "   color: #ffffff;"
+        "   border: none;"
+        "   border-radius: 4px;"
+        "   padding: 8px 16px;"
+        "   margin: 5px;"
+        "}"
+        "button:hover {"
+        "   background: #3d3d3d;"
+        "}"
+        "button#accept {"
+        "   background: #28a745;"
+        "}"
+        "button#accept:hover {"
+        "   background: #218838;"
+        "}"
+        "button#decline {"
+        "   background: #dc3545;"
+        "}"
+        "button#decline:hover {"
+        "   background: #c82333;"
+        "}", -1, NULL);
+
+        GdkScreen *screen = gdk_screen_get_default();
+        gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        g_object_unref(provider);
+}
+
 // Function to send the file if the request is accepted
 void send_file(const char *fileName) {
     FILE *file = fopen(fileName, "rb");
@@ -83,6 +123,8 @@ void start_server() {
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
+
+    apply_css();
 
     // Create the main window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);

@@ -14,6 +14,47 @@ GtkWidget *entry_server_ip;
 GtkWidget *entry_file_name;
 GtkWidget *label_status;
 
+void apply_css() {
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider,
+        "window {"
+        "   background-color: #1e1e1e;"
+        "}"
+        "label {"
+        "   color: #ffffff;"
+        "   font-size: 12px;"
+        "   margin: 10px;"
+        "}"
+        "entry {"
+        "   background: #2d2d2d;"
+        "   color: #ffffff;"
+        "   border: 1px solid #3d3d3d;"
+        "   border-radius: 4px;"
+        "   padding: 8px;"
+        "   margin: 5px;"
+        "}"
+        "entry:focus {"
+        "   border-color: #0066cc;"
+        "}"
+        "button {"
+        "   background: #28a745;"
+        "   color: #ffffff;"
+        "   border: none;"
+        "   border-radius: 4px;"
+        "   padding: 8px 16px;"
+        "   margin: 10px;"
+        "}"
+        "button:hover {"
+        "   background: #218838;"
+        "}", -1, NULL);
+
+        GdkScreen *screen = gdk_screen_get_default();
+    gtk_style_context_add_provider_for_screen(screen,
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+}
+
 void request_file (const char *serverIp, const char *fileName) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -69,6 +110,8 @@ void on_request_button_clicked (GtkWidget *widget, gpointer data) {
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
+
+    apply_css();
 
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Client Application");
