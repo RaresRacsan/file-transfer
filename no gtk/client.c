@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     char receivedFileName[256];
     long fileSize;
     unsigned long serverChecksum;
-    
+
     recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
     recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
     recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
@@ -112,7 +112,24 @@ int main(int argc, char *argv[]) {
     if(file_exists(receivedFileName)) {
         printf("Proceeding with renamed or overwritten file: %s.\n", receivedFileName);
     }
-    
+
+    // Receive the prompt from the server
+    char acceptMessage[256];
+    recv(clientSocket, acceptMessage, sizeof(acceptMessage), 0);
+    printf("%s", acceptMessage);
+
+    // Send the client's response
+    char response;
+    scanf(" %c", &response);
+    send(clientSocket, &response, sizeof(response), 0);
+
+    if (response != 'y' && response != 'Y') {
+        printf("File transfer declined.\n");
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
     FILE *file = fopen(receivedFileName, "wb");
     if (file == NULL) {
         printf("Error: Failed to create file for writing.\n");

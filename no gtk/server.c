@@ -117,9 +117,22 @@ int main() {
         send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
         send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
 
+        // Ask client if they want to accept the file
+        char acceptMessage[] = "Do you want to accept the file? (y/n): ";
+        send(clientSocket, acceptMessage, sizeof(acceptMessage), 0);
+
+        char clientResponse;
+        recv(clientSocket, &clientResponse, sizeof(clientResponse), 0);
+
+        if (clientResponse != 'y' && clientResponse != 'Y') {
+            printf("Client declined the file.\n");
+            closesocket(clientSocket);
+            continue;
+        }
+
         file = fopen(fileName, "rb");
 
-        // Send file content in chunks  
+        // Send file content in chunks
         char buffer[CHUNK_SIZE];
         int bytesRead;
 
