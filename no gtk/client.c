@@ -8,9 +8,19 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT 8080
-#define CHUNK_SIZE 16384 // 16 KB chunk size
+#define CHUNK_SIZE 16384 // 16 KB
 #define BUFFER_SIZE 1024
 
+// Checksum calculation function
+unsigned long calculate_checksum(unsigned char *buffer, size_t length) {
+    unsigned long checksum = 0;
+    for (size_t i = 0; i < length; i++) {
+        checksum += buffer[i];
+    }
+    return checksum;
+}
+
+// Sanitize filename to remove invalid characters
 void sanitize_filename(char *fileName) {
     const char *invalidChars = "\\/*?:\"<>|";
     for (int i = 0; fileName[i]; i++) {
@@ -38,6 +48,9 @@ void request_file_transfer(SOCKET server_socket, const char *filename) {
         unsigned long serverChecksum;
 
         sscanf(file_info, "%s %ld %lu", server_filename, &fileSize, &serverChecksum);
+
+        // Sanitize the filename
+        sanitize_filename(server_filename);
 
         printf("Server wants to transfer file: %s\n", server_filename);
         printf("File size: %ld bytes\n", fileSize);
@@ -67,19 +80,19 @@ void request_file_transfer(SOCKET server_socket, const char *filename) {
                 clientChecksum += calculate_checksum((unsigned char *)file_buffer, bytesReceived);
             }
 
-            printf("File received.\n");
+            fclose(file);
 
+            // Verify file size
             if (ftell(file) != fileSize) {
                 printf("Error: File corruption detected (size mismatch).\n");
             } else {
+                // Checksum verification
                 if (clientChecksum == serverChecksum) {
                     printf("Success: File checksum matches. File is valid.\n");
                 } else {
                     printf("Error: File checksum does not match. File may be corrupted.\n");
                 }
             }
-
-            fclose(file);
         } else {
             send(server_socket, "DECLINE_TRANSFER", 15, 0);
         }

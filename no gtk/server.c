@@ -11,13 +11,22 @@
 #define CHUNK_SIZE 16384 // 16 KB chunk size
 #define BUFFER_SIZE 1024
 
-void sanitize_filename(char * fileName) {
+void sanitize_filename(char *fileName) {
     const char *invalidChars = "\\/*?:\"<>|";
-    for(int i = 0; fileName[i]; i++) {
-        if(strchr(invalidChars, fileName[i])) {
-                fileName[i] = '_';
-            }
+    for (int i = 0; fileName[i]; i++) {
+        if (strchr(invalidChars, fileName[i])) {
+            fileName[i] = '_';
+        }
     }
+}
+
+// Checksum function (assuming `calculate_checksum` is implemented elsewhere in your code)
+unsigned long calculate_checksum(unsigned char *buffer, size_t length) {
+    unsigned long checksum = 0;
+    for (size_t i = 0; i < length; i++) {
+        checksum += buffer[i];
+    }
+    return checksum;
 }
 
 void request_file_transfer(SOCKET server_socket, const char *filename) {
@@ -126,53 +135,6 @@ int main(int argc, char *argv[]) {
     request_file_transfer(clientSocket, fileName);
 
     closesocket(clientSocket);
-    WSACleanup();
-    return 0;
-}
-    if (wsaInit != 0) {
-        printf("Error: Winsock initialization failed. Error code: %d\n", wsaInit);
-        return 1;
-    }
-
-    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (serverSocket == INVALID_SOCKET) {
-        printf("Error: Socket creation failed. Error code: %d\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
-
-    struct sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-
-    if (bind(serverSocket, (const struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        printf("Error: Bind failed. Error code: %d\n", WSAGetLastError());
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    if (listen(serverSocket, 3) == SOCKET_ERROR) {
-        printf("Error: Listen failed. Error code: %d\n", WSAGetLastError());
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    printf("Server is listening on port %d...\n", PORT);
-    printf("Waiting for clients to connect.\n");
-
-    SOCKET clientSocket;
-    struct sockaddr_in clientAddr;
-    int clientAddrSize = sizeof(clientAddr);
-
-    while ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET) {
-        printf("Client connected.\n");
-        handle_client(clientSocket);
-    }
-
-    closesocket(serverSocket);
     WSACleanup();
     return 0;
 }
