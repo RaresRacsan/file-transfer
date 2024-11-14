@@ -7,13 +7,14 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#define PORT 8080
+#define PORT 8080   // Server port
 #define CHUNK_SIZE 16384
 
 GtkWidget *entry_server_ip;
 GtkWidget *entry_file_name;
 GtkWidget *label_status;
 
+// Function to apply custom styles to widgets
 void apply_css() {
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(provider,
@@ -55,10 +56,12 @@ void apply_css() {
     g_object_unref(provider);
 }
 
+// Function to request file from server
 void request_file (const char *serverIp, const char *fileName) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
+    // Create socket
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     struct sockaddr_in serverAddr;
@@ -66,6 +69,7 @@ void request_file (const char *serverIp, const char *fileName) {
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = inet_addr(serverIp);
 
+    // Connect to server
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         gtk_label_set_text(GTK_LABEL(label_status), "Connection failed.");
         closesocket(clientSocket);
@@ -99,6 +103,7 @@ void on_request_button_clicked (GtkWidget *widget, gpointer data) {
     const char *serverIp = gtk_entry_get_text(GTK_ENTRY(entry_server_ip));
     const char *fileName = gtk_entry_get_text(GTK_ENTRY(entry_file_name));
 
+    // Validating input
     if(strlen(serverIp) == 0 || strlen(fileName) == 0) {
         gtk_label_set_text(GTK_LABEL(label_status), "Enter server IP and file name.");
         return;
@@ -108,36 +113,46 @@ void on_request_button_clicked (GtkWidget *widget, gpointer data) {
     request_file(serverIp, fileName);
 }
 
+// Main function
 int main(int argc, char *argv[]) {
+    // Initialize GTK
     gtk_init(&argc, &argv);
 
+    // Apply custom styles
     apply_css();
 
+    // Create main window
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Client");
     gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
 
+    // Create layout
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
+    // Create widgets
     GtkWidget *label_ip = gtk_label_new("Server IP:");
     entry_server_ip = gtk_entry_new();
     GtkWidget *label_file = gtk_label_new("File Name:");
     entry_file_name = gtk_entry_new();
     label_status = gtk_label_new("");
 
+    // Add widgets to layout
     gtk_box_pack_start(GTK_BOX(vbox), label_ip, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), entry_server_ip, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), label_file, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), entry_file_name, FALSE, FALSE, 0);
 
+    // Create and connect "request" button
     GtkWidget *button_request = gtk_button_new_with_label("Request File");
     gtk_box_pack_start(GTK_BOX(vbox), button_request, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), label_status, FALSE, FALSE, 0);
 
+    // Connect signals
     g_signal_connect(button_request, "clicked", G_CALLBACK(on_request_button_clicked), NULL);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
+    // Show window
     gtk_widget_show_all(window);
 
     gtk_main();
