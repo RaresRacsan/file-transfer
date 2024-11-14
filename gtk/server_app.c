@@ -56,6 +56,31 @@ void apply_css(void) {
         g_object_unref(provider);
 }
 
+gboolean restart_connection(gpointer data) {
+    // Wait for new connection
+    struct sockaddr_in clientAddr;
+    int clientAddrSize = sizeof(clientAddr);
+    clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
+
+    char fileName[256];
+    recv(clientSocket, fileName, sizeof(fileName), 0);
+    gtk_label_set_text(GTK_LABEL(label_file_requested), fileName);
+    gtk_label_set_text(GTK_LABEL(label_status), "File request received.");
+
+    return FALSE;
+}
+
+void restart_server() {
+    // Close existing connections
+    closesocket(clientSocket);
+
+    // Reset labels
+    gtk_label_set_text(GTK_LABEL(label_status), "Server listening for requests...");
+    gtk_label_set_text(GTK_LABEL(label_file_requested), "No file requested.");
+
+    g_timeout_add(2000, restart_connection, NULL);
+}
+
 // Function to send the file if the request is accepted
 void send_file(const char *fileName) {
     FILE *file = fopen(fileName, "rb");
@@ -86,13 +111,17 @@ void send_file(const char *fileName) {
 void on_accept_button_clicked(GtkWidget *widget, gpointer data) {
     const char *fileName = gtk_label_get_text(GTK_LABEL(label_file_requested));
     send_file(fileName);
-    closesocket(clientSocket);
+    
+    // Add delay to show the status message
+    g_timeout_add(3000, (GSourceFunc)restart_server, NULL);
 }
 
 // Callback when Decline button is clicked
 void on_decline_button_clicked(GtkWidget *widget, gpointer data) {
     gtk_label_set_text(GTK_LABEL(label_status), "File request declined.");
-    closesocket(clientSocket);
+    
+    // Add delay to show the status message
+    g_timeout_add(1000, (GSourceFunc)restart_server, NULL);
 }
 
 void start_server() {
