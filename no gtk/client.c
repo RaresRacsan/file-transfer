@@ -9,46 +9,81 @@
 
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
+#define BUFFER_SIZE 1024
 
-// Function to calculate the checksum (sum of all bytes)
-unsigned long calculate_checksum(unsigned char *data, size_t dataSize) {
-    unsigned long checksum = 0;
-    for (size_t i = 0; i < dataSize; i++) {
-        checksum += data[i];
-    }
-    return checksum;
-}
-
-// Function to sanitize filenames (remove/ replace with '_')
-void sanitize_filename (char *fileName) {
-    // List of invalid characters for filenames in Windows
+void sanitize_filename(char *fileName) {
     const char *invalidChars = "\\/*?:\"<>|";
-
-    for(int i = 0; fileName[i]; i++) {
-        if(strchr(invalidChars, fileName[i])) {
-                fileName[i] = '_';
-            }
+    for (int i = 0; fileName[i]; i++) {
+        if (strchr(invalidChars, fileName[i])) {
+            fileName[i] = '_';
+        }
     }
 }
 
-// Function to check if a file exists and prompt user for action (overwrite or rename)
-int file_exists (char *fileName) {
-    if(_access(fileName, 0) != -1) {    // Check if file exists
-        printf("Warning: File '%s' already exists.\n", fileName);
+void request_file_transfer(SOCKET server_socket, const char *filename) {
+    char buffer[BUFFER_SIZE];
 
-        printf("Do you want to overwrite it? (y/n): ");
-        char response;
-        scanf("%c", &response);
+    // Send file transfer request
+    snprintf(buffer, BUFFER_SIZE, "REQUEST_TRANSFER %s", filename);
+    send(server_socket, buffer, strlen(buffer), 0);
 
-        if(response != 'y' && response != 'Y') {
-            char newFileName[256];
-            printf("Enter a new filename: ");
-            scanf("%s", newFileName);
-            strcpy(fileName, newFileName);
+    // Receive server response
+    int bytes_received = recv(server_socket, buffer, BUFFER_SIZE, 0);
+    buffer[bytes_received] = '\0';
+
+    if (strncmp(buffer, "TRANSFER", 8) == 0) {
+        char *file_info = buffer + 9;
+        char server_filename[256];
+        long fileSize;
+        unsigned long serverChecksum;
+
+        sscanf(file_info, "%s %ld %lu", server_filename, &fileSize, &serverChecksum);
+
+        printf("Server wants to transfer file: %s\n", server_filename);
+        printf("File size: %ld bytes\n", fileSize);
+        printf("File checksum: %lu\n", serverChecksum);
+
+        // Ask user to accept or decline
+        printf("Do you want to accept the file transfer? (yes/no): ");
+        char response[10];
+        scanf("%s", response);
+
+        if (strcmp(response, "yes") == 0) {
+            send(server_socket, "ACCEPT_TRANSFER", 15, 0);
+
+            FILE *file = fopen(server_filename, "wb");
+            if (file == NULL) {
+                printf("Error: Failed to create file for writing.\n");
+                return;
+            }
+
+            char file_buffer[CHUNK_SIZE];
+            int bytesReceived;
+            unsigned long clientChecksum = 0;
+
+            printf("Receiving file content...\n");
+            while ((bytesReceived = recv(server_socket, file_buffer, sizeof(file_buffer), 0)) > 0) {
+                fwrite(file_buffer, 1, bytesReceived, file);
+                clientChecksum += calculate_checksum((unsigned char *)file_buffer, bytesReceived);
+            }
+
+            printf("File received.\n");
+
+            if (ftell(file) != fileSize) {
+                printf("Error: File corruption detected (size mismatch).\n");
+            } else {
+                if (clientChecksum == serverChecksum) {
+                    printf("Success: File checksum matches. File is valid.\n");
+                } else {
+                    printf("Error: File checksum does not match. File may be corrupted.\n");
+                }
+            }
+
+            fclose(file);
+        } else {
+            send(server_socket, "DECLINE_TRANSFER", 15, 0);
         }
-        return 1;   // File exists
     }
-    return 0;       // File doesn't exist
 }
 
 int main(int argc, char *argv[]) {
@@ -88,62 +123,8 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to server at %s...\n", serverIp);
 
-    // Send filename to server
-    send(clientSocket, fileName, strlen(fileName), 0);
-    printf("Requested file: '%s'...\n", fileName);
+    request_file_transfer(clientSocket, fileName);
 
-    // Receive the file metadata
-    char receivedFileName[256];
-    long fileSize;
-    unsigned long serverChecksum;
-    
-    recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
-    recv(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
-    recv(clientSocket, (char*)&serverChecksum, sizeof(serverChecksum), 0);
-
-    //sanitize_filename(receivedFileName);
-
-    printf("Received file metadata:\n");
-    printf("File: %s\n", receivedFileName);
-    printf("Size: %ld bytes\n", fileSize);
-    printf("Checksum: %lu\n", serverChecksum);
-
-    // Check if file already exists and handle renaming
-    if(file_exists(receivedFileName)) {
-        printf("Proceeding with renamed or overwritten file: %s.\n", receivedFileName);
-    }
-    
-    FILE *file = fopen(receivedFileName, "wb");
-    if (file == NULL) {
-        printf("Error: Failed to create file for writing.\n");
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    char buffer[CHUNK_SIZE];
-    int bytesReceived;
-    unsigned long clientChecksum = 0;
-
-    printf("Receiving file content...\n");
-    while ((bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-        fwrite(buffer, 1, bytesReceived, file);
-        clientChecksum += calculate_checksum(buffer, bytesReceived);
-    }
-
-    printf("File received.\n");
-
-    if (ftell(file) != fileSize) {
-        printf("Error: File corruption detected (size mismatch).\n");
-    } else {
-        if (clientChecksum == serverChecksum) {
-            printf("Success: File checksum matches. File is valid.\n");
-        } else {
-            printf("Error: File checksum does not match. File may be corrupted.\n");
-        }
-    }
-
-    fclose(file);
     closesocket(clientSocket);
     WSACleanup();
     return 0;
