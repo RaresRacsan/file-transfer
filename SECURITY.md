@@ -4,9 +4,9 @@
 
 The following versions of the *File Transfer Application in C (TCP)* project are currently supported with security updates:
 
-| Version | Supported          |
-|---------|--------------------|
-| v1.0    | :white_check_mark: |
+|    Versions    |     Supported      |
+|----------------|--------------------|
+| v1.0.0-beta    | :white_check_mark: |
 
 If you are using an unsupported version, we recommend upgrading to the latest version to ensure you receive important updates.
 
