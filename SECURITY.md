@@ -16,7 +16,7 @@ If you are using an unsupported version, we recommend upgrading to the latest ve
 
 If you discover a security vulnerability in this project, please report it responsibly by following these steps:
 
-1. **Contact Us**: Send an email to [your_email@example.com] with the subject line: `Security Issue: [Brief Description]`.
+1. **Contact Us**: Send an email to [rares.racsan@gmail.com] with the subject line: `Security Issue: [Brief Description]`.
 2. **Provide Details**: Include as much detail as possible to help us reproduce and understand the issue. 
    - Steps to reproduce the vulnerability.
    - Potential impact of the issue.
