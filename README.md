@@ -153,5 +153,7 @@ The client will connect to the server, request the specified file, and save it l
 7. **Error handling and other problems:** ✔
    - file overwritting, special file types, file integrity check. ✔
 
+If you want to contribute, even if you use Chat-Gpt, **please** know what you are doing first because you are wasting both my time (by staying and reviewing your buggy uncompleted code) and yours (by asking Gpt to write the code and not getting the PR). It is so obvious when the requester is using AI and is not even thinking about the issue.
+
 ## License
 This project is open-source and available under the MIT License.
