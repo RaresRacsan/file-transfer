@@ -28,8 +28,6 @@ Steps to reproduce the behavior:
 - **Network Setup**: (e.g., same machine, LAN, or WAN)
 
 ## Screenshots or Logs
-**Attach any relevant screenshots or paste logs here:**
-
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
