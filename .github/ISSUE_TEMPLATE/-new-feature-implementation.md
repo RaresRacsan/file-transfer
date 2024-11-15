@@ -41,30 +41,3 @@ assignees: ''
 2. Design the GUI layout using GTK widgets.
 3. Add event handlers for buttons and file selection.
 4. Integrate file transfer logic with the GUI.
-
-## Testing Plan
-**Describe how this feature will be tested:**
-1. Unit Tests:
-   - Example: "Test the file picker functionality."
-2. Integration Tests:
-   - Example: "Verify that the GUI correctly integrates with the file transfer logic."
-3. End-to-End Tests:
-   - Example: "Run a complete file transfer using the GUI and check for any errors."
-
-## Milestones and Deadlines
-**Set clear milestones for completing this feature:**
-1. **Milestone 1**: (e.g., GUI layout completed) - [Deadline]
-2. **Milestone 2**: (e.g., Integration with file transfer logic) - [Deadline]
-3. **Milestone 3**: (e.g., Final testing and bug fixes) - [Deadline]
-
-## Progress Updates
-**Provide updates as the feature is implemented:**
-- [ ] Initial setup and environment configuration completed.
-- [ ] Core functionality implemented.
-- [ ] Feature tested and verified.
-
-## Risks and Challenges
-**Identify potential risks or challenges for this feature:**
-- Example: "GTK compatibility issues on different operating systems."
-
-**Thank you for contributing to the implementation of this feature!**
