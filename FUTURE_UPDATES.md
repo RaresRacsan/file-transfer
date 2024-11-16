@@ -32,7 +32,7 @@ The application allows for basic file transfers between a client and server usin
    - **Resuming File Transfers**: Enable the ability to resume an interrupted file transfer without starting from scratch.
    - **Timeouts and Retry Logic**: Add logic to handle network timeouts and automatically retry failed transfers.
 
-### 8. **Better User Interface / Experience**
+### 8. **Better User Interface / Experience** ✔
    - ~~**CLI Improvements**: Improve the command-line interface with better prompts and user feedback.~~ ✔
    - ~~**Graphical User Interface (GUI)**: Design and implement a GUI to make the application more accessible for non-technical users.~~ ✔
 
