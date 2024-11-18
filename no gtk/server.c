@@ -82,66 +82,71 @@ int main() {
     while ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET) {
         printf("Client connected.\n");
 
-        char fileName[256];
-        int bytesReceived = recv(clientSocket, fileName, sizeof(fileName), 0);
-        if (bytesReceived <= 0) {
-            printf("Error: Failed to receive filename.\n");
-            closesocket(clientSocket);
-            continue;
+        int nr_of_files;
+        recv(clientSocket, (char*)&nr_of_files, sizeof(nr_of_files), 0);
+
+        for (int i = 0; i < nr_of_files; i++) {
+            char fileName[256];
+            int bytesReceived = recv(clientSocket, fileName, sizeof(fileName), 0);
+            if (bytesReceived <= 0) {
+                printf("Error: Failed to receive filename.\n");
+                closesocket(clientSocket);
+                continue;
+            }
+            fileName[bytesReceived] = '\0';
+
+            // Sanitize filename to avoid illegal characters
+            sanitize_filename(fileName);
+
+            FILE *file = fopen(fileName, "rb");
+            if (file == NULL) {
+                printf("Error: File %s not found.\n", fileName);
+                closesocket(clientSocket);
+                continue;
+            }
+
+            fseek(file, 0, SEEK_END);
+            long fileSize = ftell(file);
+            fseek(file, 0, SEEK_SET);
+
+            unsigned long checksum = calculate_checksum(file);
+            fclose(file);
+
+            printf("Server: File '%s' found.\n", fileName);
+            printf("Server: File size is %ld bytes.\n", fileSize);
+            printf("Server: File checksum is %lu.\n", checksum);
+
+            // Send file metadata (name, size, checksum)
+            send(clientSocket, fileName, strlen(fileName) + 1, 0);
+            send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
+            send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
+
+            // Ask client if they want to accept the file
+            char acceptMessage[] = "Do you want to accept the file? (y/n): ";
+            send(clientSocket, acceptMessage, sizeof(acceptMessage), 0);
+
+            char clientResponse;
+            recv(clientSocket, &clientResponse, sizeof(clientResponse), 0);
+
+            if (clientResponse != 'y' && clientResponse != 'Y') {
+                printf("Client declined the file.\n");
+                continue;
+            }
+
+            file = fopen(fileName, "rb");
+
+            // Send file content in chunks
+            char buffer[CHUNK_SIZE];
+            int bytesRead;
+
+            while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+                send(clientSocket, buffer, bytesRead, 0);
+            }
+
+            printf("File '%s' sent successfully.\n", fileName);
+            fclose(file);
         }
-        fileName[bytesReceived] = '\0';
 
-        // Sanitize filename to avoid illegal characters
-        sanitize_filename(fileName);
-
-        FILE *file = fopen(fileName, "rb");
-        if (file == NULL) {
-            printf("Error: File %s not found.\n", fileName);
-            closesocket(clientSocket);
-            continue;
-        }
-
-        fseek(file, 0, SEEK_END);
-        long fileSize = ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        unsigned long checksum = calculate_checksum(file);
-        fclose(file);
-
-        printf("Server: File '%s' found.\n", fileName);
-        printf("Server: File size is %ld bytes.\n", fileSize);
-        printf("Server: File checksum is %lu.\n", checksum);
-
-        // Send file metadata (name, size, checksum)
-        send(clientSocket, fileName, strlen(fileName) + 1, 0);
-        send(clientSocket, (char*)&fileSize, sizeof(fileSize), 0);
-        send(clientSocket, (char*)&checksum, sizeof(checksum), 0);
-
-        // Ask client if they want to accept the file
-        char acceptMessage[] = "Do you want to accept the file? (y/n): ";
-        send(clientSocket, acceptMessage, sizeof(acceptMessage), 0);
-
-        char clientResponse;
-        recv(clientSocket, &clientResponse, sizeof(clientResponse), 0);
-
-        if (clientResponse != 'y' && clientResponse != 'Y') {
-            printf("Client declined the file.\n");
-            closesocket(clientSocket);
-            continue;
-        }
-
-        file = fopen(fileName, "rb");
-
-        // Send file content in chunks
-        char buffer[CHUNK_SIZE];
-        int bytesRead;
-
-        while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-            send(clientSocket, buffer, bytesRead, 0);
-        }
-
-        printf("File '%s' sent successfully.\n", fileName);
-        fclose(file);
         closesocket(clientSocket);
     }
 
