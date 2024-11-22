@@ -124,6 +124,10 @@ int main(int argc, char *argv[])
         unsigned long serverChecksum;
 
         recv(clientSocket, receivedFileName, sizeof(receivedFileName), 0);
+        if (strcmp(receivedFileName, "File not found") == 0) {
+            printf("Server: File '%s' not found.\n", fileName);
+            continue;
+        }
         recv(clientSocket, (char *)&fileSize, sizeof(fileSize), 0);
         recv(clientSocket, (char *)&serverChecksum, sizeof(serverChecksum), 0);
 
