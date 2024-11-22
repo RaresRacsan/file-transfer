@@ -101,7 +101,7 @@ int main() {
             FILE *file = fopen(fileName, "rb");
             if (file == NULL) {
                 printf("Error: File %s not found.\n", fileName);
-                closesocket(clientSocket);
+                send(clientSocket, "File not found", strlen("File not found") + 1, 0);
                 continue;
             }
 
