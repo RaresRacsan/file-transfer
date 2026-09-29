@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <io.h>
 
-#pragma comment(lib, "ws2_32.lib")
+#include "socket_compat.h"
 
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
@@ -39,7 +36,13 @@ void sanitize_filename(char *fileName)
 // Function to check if a file exists and prompt user for action (overwrite or rename)
 int file_exists(char *fileName)
 {
-    if (_access(fileName, 0) != -1)
+#ifdef _WIN32
+    int exists = _access(fileName, 0) != -1;
+#else
+    int exists = access(fileName, F_OK) != -1;
+#endif
+
+    if (exists)
     { // Check if file exists
         printf("Warning: File '%s' already exists.\n", fileName);
 
@@ -76,6 +79,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+#ifdef _WIN32
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaInit != 0)
@@ -83,12 +87,17 @@ int main(int argc, char *argv[])
         printf("Error: Winsock initialization failed. Error code: %d\n", wsaInit);
         return 1;
     }
+#endif
 
-    SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (clientSocket == INVALID_SOCKET)
+    socket_t clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (clientSocket == INVALID_SOCK)
     {
+#ifdef _WIN32
         printf("Error: Socket creation failed. Error code: %d\n", WSAGetLastError());
         WSACleanup();
+#else
+        perror("Error: Socket creation failed");
+#endif
         return 1;
     }
 
@@ -99,9 +108,15 @@ int main(int argc, char *argv[])
 
     if (connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
+#ifdef _WIN32
         printf("Error: Connection failed. Error code: %d\n", WSAGetLastError());
-        closesocket(clientSocket);
+#else
+        perror("Error: Connection failed");
+#endif
+        socket_close(clientSocket);
+#ifdef _WIN32
         WSACleanup();
+#endif
         return 1;
     }
 
@@ -201,7 +216,11 @@ int main(int argc, char *argv[])
         fclose(file);
     }
 
-    closesocket(clientSocket);
+    socket_close(clientSocket);
+
+#ifdef _WIN32
     WSACleanup();
+#endif
+
     return 0;
 }

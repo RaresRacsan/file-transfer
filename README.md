@@ -52,6 +52,8 @@ You should see version information if GCC is installed properly.
 
 
 ## Compilation - without GTK
+### Windows
+
 Compile the server and client applications as follows:
 1. **Compile the server**
 ```bash
@@ -63,24 +65,61 @@ gcc client.c -o client.exe -lws2_32
 ```
 This will produce server.exe and client.exe.
 
+### macOS / Linux
+
+The CLI version supports POSIX sockets on macOS and Linux.
+
+Compile the server and client using GCC or Clang:
+1. **Compile the server**
+```bash
+cc server.c -o server
+```
+
+2. **Compile the client**
+```bash
+cc client.c -o client
+```
+
+No additional socket library is required on POSIX systems.
+
 ## Running the Application - without GTK
 ### Step 1: Start the Server
 1. Open a terminal or command prompt in the project directory.
 2. Run the server application:
+
+**Windows:**
 ```bash
 ./server.exe
 ```
+**macOS / Linux:**
+```bash
+./server
+```
+
 ### Step 2: Run the Client
 1. In a **separate terminal** or on a **different machine**, navigate to the project directory.
 2. Run the client, specifying the server's IP address and the filename you want to download:
+
+**Windows:**
 ```bash
 ./client.exe <server_ip> <filename>
 ```
+**macOS / Linux:**
+```bash
+./client <server_ip> <filename>
+```
    - Replace <server_ip> with the server's IP address (e.g., 127.0.0.1 if running locally).
    - Replace <filename> with the name of the file you want to download from the server's directory.
+   
+**Windows:**
 ```bash
 ./client.exe 127.0.0.1 testfile.txt
 ```
+**macOS / Linux:**
+```bash
+./client 127.0.0.1 testfile.txt
+```
+
 The client will connect to the server, request the specified file, and save it locally with the same filename.
 
 ## Compile Server and client - with GTK

@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
 #include <sys/stat.h>
 #include <ctype.h>
 
-#pragma comment(lib, "ws2_32.lib")
+#include "socket_compat.h"
 
 #define PORT 8080
 #define CHUNK_SIZE 16384 // 16 KB chunk size
@@ -38,18 +36,24 @@ void sanitize_filename(char * fileName) {
     }
 }
 
-int main() {
+int main(void) {
+#ifdef _WIN32
     WSADATA wsaData;
     int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaInit != 0) {
         printf("Error: Winsock initialization failed. Error code: %d\n", wsaInit);
         return 1;
     }
+#endif
 
-    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (serverSocket == INVALID_SOCKET) {
+    socket_t serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (serverSocket == INVALID_SOCK) {
+#ifdef _WIN32
         printf("Error: Socket creation failed. Error code: %d\n", WSAGetLastError());
         WSACleanup();
+#else
+        perror("Error: Socket creation failed");
+#endif
         return 1;
     }
 
@@ -58,28 +62,40 @@ int main() {
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(serverSocket, (const struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+    if (bind(serverSocket, (const struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+#ifdef _WIN32
         printf("Error: Bind failed. Error code: %d\n", WSAGetLastError());
-        closesocket(serverSocket);
+#else
+        perror("Error: Bind failed");
+#endif
+        socket_close(serverSocket);
+#ifdef _WIN32
         WSACleanup();
+#endif
         return 1;
     }
 
-    if (listen(serverSocket, 3) == SOCKET_ERROR) {
+    if (listen(serverSocket, 3) < 0) {
+#ifdef _WIN32
         printf("Error: Listen failed. Error code: %d\n", WSAGetLastError());
-        closesocket(serverSocket);
+#else
+        perror("Error: Listen failed");
+#endif
+        socket_close(serverSocket);
+#ifdef _WIN32
         WSACleanup();
+#endif
         return 1;
     }
 
     printf("Server is listening on port %d...\n", PORT);
     printf("Waiting for clients to connect.\n");
 
-    SOCKET clientSocket;
+    socket_t clientSocket;
     struct sockaddr_in clientAddr;
-    int clientAddrSize = sizeof(clientAddr);
+    socket_len_t clientAddrSize = sizeof(clientAddr);
 
-    while ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET) {
+    while ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize)) != INVALID_SOCK) {
         printf("Client connected.\n");
 
         int nr_of_files;
@@ -90,7 +106,7 @@ int main() {
             int bytesReceived = recv(clientSocket, fileName, sizeof(fileName), 0);
             if (bytesReceived <= 0) {
                 printf("Error: Failed to receive filename.\n");
-                closesocket(clientSocket);
+                socket_close(clientSocket);
                 continue;
             }
             fileName[bytesReceived] = '\0';
@@ -147,10 +163,14 @@ int main() {
             fclose(file);
         }
 
-        closesocket(clientSocket);
+        socket_close(clientSocket);
     }
 
-    closesocket(serverSocket);
+    socket_close(serverSocket);
+
+#ifdef _WIN32
     WSACleanup();
+#endif
+
     return 0;
 }
